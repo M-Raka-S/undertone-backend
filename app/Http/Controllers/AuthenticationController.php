@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Sanctum\TransientToken;
 
 class AuthenticationController extends Controller
 {
@@ -59,7 +60,19 @@ class AuthenticationController extends Controller
 
     public function logout()
     {
-        auth()->user()->currentAccessToken()->delete();
+        $user = auth()->user();
+
+        if (!$user) {
+            return $this->unauthenticated('please login first.');
+        }
+
+        $token = $user->currentAccessToken();
+
+        if ($token instanceof TransientToken) {
+            return $this->ok('log out successful (test mode).');
+        }
+
+        $token->delete();
         return $this->ok('log out successful.');
     }
 

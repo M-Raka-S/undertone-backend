@@ -22,8 +22,8 @@ beforeAll(function() {
 });
 beforeEach(function () {
     $password = fake()->password();
-    $user = User::factory()->create(['password' => $password]);
-    TestData::$existing_username = $user->username;
+    $this->user = User::factory()->create(['password' => $password]);
+    TestData::$existing_username = $this->user->username;
     TestData::$existing_password = $password;
 });
 
@@ -110,5 +110,17 @@ test('success when login with valid credentials', function() {
         'username' => TestData::$existing_username,
         'password' => TestData::$existing_password,
     ]);
+    $response->assertStatus(200);
+});
+
+test('fails when logging out on unauthenticated session', function() {
+    $this->withoutMiddleware();
+    $response = $this->delete('/api/logout');
+    $response->assertStatus(401);
+});
+
+test('success when logging out', function() {
+    $this->actingAs($this->user);
+    $response = $this->delete('/api/logout');
     $response->assertStatus(200);
 });

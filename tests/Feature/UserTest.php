@@ -15,22 +15,6 @@ test('fails when making user', function () {
     $response->assertStatus(403);
 });
 
-test('fails when editing other user', function () {
-    $response = $this->post("/api/users/{$this->users->get(1)->id}", [
-        '_method' => 'patch',
-        'username' => 'edited',
-    ]);
-    $response->assertStatus(403);
-});
-
-test('success when editing self', function () {
-    $response = $this->post("/api/users/{$this->users->get(0)->id}", [
-        '_method' => 'patch',
-        'username' => 'edited',
-    ]);
-    $response->assertStatus(200);
-});
-
 test('fails reading when no users', function () {
     User::query()->delete();
     $response = $this->get('/api/users/page/1');
@@ -58,4 +42,33 @@ test('success when picking a valid user', function () {
         "id" => $this->users->get(0)->id,
         "username" => $this->users->get(0)->username,
     ]);
+});
+
+test('fails when editing non-existent user', function () {
+    $response = $this->post("/api/users/-1", [
+        '_method' => 'patch',
+        'username' => 'edited',
+    ]);
+    $response->assertStatus(403);
+});
+
+test('fails when editing other user', function () {
+    $response = $this->post("/api/users/{$this->users->get(1)->id}", [
+        '_method' => 'patch',
+        'username' => 'edited',
+    ]);
+    $response->assertStatus(403);
+});
+
+test('success when editing self', function () {
+    $response = $this->post("/api/users/{$this->users->get(0)->id}", [
+        '_method' => 'patch',
+        'username' => 'edited',
+    ]);
+    $response->assertStatus(200);
+});
+
+test('fails when deleting user', function () {
+    $response = $this->delete("/api/users/{$this->users->get(0)->id}");
+    $response->assertStatus(403);
 });
