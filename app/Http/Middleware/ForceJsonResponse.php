@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
@@ -18,12 +17,13 @@ class ForceJsonResponse
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
-        $content = !Str::contains($response->getContent(), '<!DOCTYPE html>') ? $response->getContent() : 'the requested page does not exist.';
+        $responseData = json_decode($response->getContent(), true);
+        $customMessage = $responseData['message'] ?? null;
 
         if ($response->status() == 404) {
             throw new HttpResponseException(response()->json([
                 'message' => 'data not found.',
-                'error' => $content,
+                'error' => $customMessage ?? 'the requested page does not exist.',
             ], 404));
         }
 
