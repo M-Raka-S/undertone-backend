@@ -31,7 +31,7 @@ return new class extends Migration
 
         Schema::create('instance_parameters', function (Blueprint $table) {
             $table->id();
-            $table->string('value');
+            $table->string('value')->nullable();
             $table->unsignedBigInteger('parameter_id')->index();
             $table->unsignedBigInteger('instance_id')->index();
             $table->timestamps();
