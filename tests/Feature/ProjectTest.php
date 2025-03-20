@@ -8,6 +8,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $user = User::factory()->create();
+    $this->projects = Project::factory()->count(30)->create();
     $this->actingAs($user);
 });
 
@@ -29,6 +30,27 @@ test('success when making project while including hidden_categories', function (
         'hidden_categories' => [1, 2, 3],
     ]);
     $response->assertStatus(201);
+});
+
+test('fails reading when no projects', function() {
+    Project::query()->delete();
+    $response = $this->get('/api/projects/page/1');
+    $response->assertStatus(404);
+});
+
+test('success when reading all projects', function() {
+    $response = $this->get('/api/projects/page/1');
+    $response->assertStatus(200);
+});
+
+test('fails when picking non-existent project', function() {
+    $response = $this->get('/api/projects/-1');
+    $response->assertStatus(404);
+});
+
+test('success when picking a valid project', function() {
+    $response = $this->get("/api/projects/{$this->projects->first()->id}");
+    $response->assertStatus(200);
 });
 
 test('fails when editing non-existent project', function () {
@@ -54,5 +76,25 @@ test('success when editing project with name', function () {
         '_method' => 'patch',
         'name' => 'edited',
     ]);
+    $response->assertStatus(200);
+});
+
+test('success when editing project with hidden_categories', function () {
+    $project = Project::factory()->create();
+    $response = $this->post("/api/projects/{$project->id}", [
+        '_method' => 'patch',
+        'name' => 'edited',
+        'hidden_categories' => [1, 2, 3],
+    ]);
+    $response->assertStatus(200);
+});
+
+test('fails when deleting non-existent project', function () {
+    $response = $this->delete('/api/projects/-1');
+    $response->assertStatus(404);
+});
+
+test('fails when deleting a valid project', function () {
+    $response = $this->delete("/api/projects/{$this->projects->get(0)->id}");
     $response->assertStatus(200);
 });
