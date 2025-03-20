@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
 
 abstract class Controller
@@ -50,9 +49,14 @@ abstract class Controller
         return $this->empty() ? $this->model::paginate($population, ['*'], 'page', $page) : $this->notFound('no data yet.');
     }
 
-    protected function get($id)
+    protected function get($id, $with = [])
     {
-        return $this->model::find($id) ?? $this->notFound("data with id {$id} not found.");
+        $query = $this->model::query();
+        if (!empty($with)) {
+            $query->with($with);
+        }
+        $model = $query->find($id);
+        return $model ?? $this->notFound("data with id {$id} not found.");
     }
 
     protected function create($except = [], $model = false)
@@ -62,13 +66,14 @@ abstract class Controller
         return $model ? $created : $boolean;
     }
 
-    protected function update($id)
+    protected function update($id, $filtered = [])
     {
         $model = $this->model::find($id);
         if(!$model) {
             return $this->notFound("data with id {$id} not found.");
         }
-        return $model->update($this->request->all()) ? true : false;
+        $data = $this->request->except($filtered);
+        return $model->update($data) ? true : false;
     }
 
     protected function delete($id)
@@ -127,6 +132,18 @@ abstract class Controller
                     'message' => $message,
                 ],
                 404,
+            ),
+        );
+    }
+
+    protected function conflict($message)
+    {
+        abort(
+            response()->json(
+                [
+                    'message' => $message,
+                ],
+                status: 409,
             ),
         );
     }
