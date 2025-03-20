@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Roles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -54,10 +55,26 @@ class User extends Authenticatable
      */
     public function projects(): BelongsToMany
     {
-        return $this->belongsToMany(Project::class, 'project_users', 'user_id', 'project_id');
+        return $this->belongsToMany(Project::class, 'project_users', 'user_id', 'project_id')->withPivot('role');
     }
 
-    public function attachProject($project) {
-        $this->projects()->attach($project);
+    public function attachProject($project, $role = 'editor')
+    {
+        $this->projects()->attach($project, ['role' => $role]);
+    }
+
+    public function detachProject($project)
+    {
+        $this->projects()->detach($project);
+    }
+
+    public function getRoleInfo($project)
+    {
+        $roleValue = $this->projects()->where('project_id', $project->id)->first()?->pivot->role;
+        if (!$roleValue) {
+            return null;
+        }
+        $roleEnum = Roles::from($roleValue);
+        return $roleEnum->info();
     }
 }

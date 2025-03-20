@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('parameters', function (Blueprint $table) {
             $table->id();
+            $table->boolean('identifier')->default(false);
             $table->string('name');
             $table->unsignedBigInteger('category_id')->index();
             $table->timestamps();
@@ -21,6 +22,7 @@ return new class extends Migration
 
         Schema::create('category_instances', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
             $table->string('summarisation');
             $table->unsignedBigInteger('category_id')->index();
             $table->unsignedBigInteger('project_id')->index();
