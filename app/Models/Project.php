@@ -36,6 +36,11 @@ class Project extends Model
         $this->users()->attach($user, ['role' => $role]);
     }
 
+    public function detachUser($user)
+    {
+        $this->users()->detach($user);
+    }
+
     public function updateUserRole($user, $role)
     {
         $this->users()->updateExistingPivot($user->id, ['role' => $role]);

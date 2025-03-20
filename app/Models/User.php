@@ -63,6 +63,11 @@ class User extends Authenticatable
         $this->projects()->attach($project, ['role' => $role]);
     }
 
+    public function detachProject($project)
+    {
+        $this->projects()->detach($project);
+    }
+
     public function getRoleInfo($project)
     {
         $roleValue = $this->projects()->where('project_id', $project->id)->first()?->pivot->role;

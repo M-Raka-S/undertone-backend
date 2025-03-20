@@ -7,7 +7,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->users = User::factory()->count(30)->create();
-    $this->actingAs($this->users->get(0));
+    $this->actingAs($this->users->first());
 });
 
 test('fails when making user', function () {
@@ -36,11 +36,11 @@ test('fails when picking a non-existent user', function () {
 });
 
 test('success when picking a valid user', function () {
-    $response = $this->get("/api/users/{$this->users->get(0)->id}");
+    $response = $this->get("/api/users/{$this->users->first()->id}");
     $response->assertStatus(200);
     $response->assertJson([
-        "id" => $this->users->get(0)->id,
-        "username" => $this->users->get(0)->username,
+        "id" => $this->users->first()->id,
+        "username" => $this->users->first()->username,
     ]);
 });
 
@@ -61,7 +61,7 @@ test('fails when editing other user', function () {
 });
 
 test('success when editing self', function () {
-    $response = $this->post("/api/users/{$this->users->get(0)->id}", [
+    $response = $this->post("/api/users/{$this->users->first()->id}", [
         '_method' => 'patch',
         'username' => 'edited',
     ]);
@@ -69,6 +69,6 @@ test('success when editing self', function () {
 });
 
 test('fails when deleting user', function () {
-    $response = $this->delete("/api/users/{$this->users->get(0)->id}");
+    $response = $this->delete("/api/users/{$this->users->first()->id}");
     $response->assertStatus(403);
 });

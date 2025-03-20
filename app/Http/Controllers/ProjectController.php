@@ -41,6 +41,9 @@ class ProjectController extends Controller
     {
         $project = $this->checkExists($id);
         $user = $this->checkExists($user_id, User::class);
+        if ($project->users()->where('user_id', $user->id)->exists()) {
+            return $this->conflict("{$user->username} is already a member of {$project->name}.");
+        }
         $project->attachUser($user);
         return $project ? $this->created("$user->username added to $project->name.") : $this->invalid('addition failed.');
     }
@@ -62,15 +65,29 @@ class ProjectController extends Controller
         $project = $this->checkExists($id);
         $user = $this->checkExists($user_id, User::class);
         $roleEnum = Roles::from($this->request->role);
+        if ($project->users()->where('user_id', $user->id)->doesntExist()) {
+            return $this->notFound("{$user->username} is not a member of {$project->name}.");
+        }
         $project->updateUserRole($user, $roleEnum->value);
         $roleName = $roleEnum->info()['name'];
-        return $project ? $this->created("$user->username changed to $roleName.") : $this->invalid('update failed.');
+        return $project ? $this->ok("$user->username changed to $roleName.") : $this->invalid('update failed.');
     }
 
 
     public function remove($id)
     {
         return $this->delete($id);
+    }
+
+    public function removeUser($id, $user_id)
+    {
+        $project = $this->checkExists($id);
+        $user = $this->checkExists($user_id, User::class);
+        if ($project->users()->where('user_id', $user->id)->doesntExist()) {
+            return $this->notFound("{$user->username} is not a member of {$project->name}.");
+        }
+        $project->detachUser($user);
+        return $project ? $this->ok("$user->username removed from $project->name.") : $this->invalid('removal failed.');
     }
 
     public function updateHiddenCategories($id)
@@ -82,21 +99,21 @@ class ProjectController extends Controller
             ],
             ['action', 'hidden_categories'],
         );
+
         $project = $this->get($id);
         $existingCategories = $project->hidden_categories ?? [];
-        $action = $this->request->action;
-        $categories = $this->request->hidden_categories;
+        $action = request('action');
+        $categories = request('hidden_categories');
+
         if ($action === 'add') {
             $newCategories = array_merge($existingCategories, $categories);
             $newCategories = array_unique($newCategories);
-            $project->hidden_categories = $newCategories;
-            $message = 'Hidden categories added.';
-        } elseif ($action === 'remove') {
-            $newCategories = array_diff($existingCategories, $categories);
-            $project->hidden_categories = $newCategories;
-            $message = 'Hidden categories removed.';
+        } else {
+            $newCategories = array_values(array_diff($existingCategories, $categories));
         }
-        $project->save();
-        return $this->ok($message);
+
+        $project->update(['hidden_categories' => $newCategories]);
+
+        return $this->ok('Hidden categories updated.');
     }
 }

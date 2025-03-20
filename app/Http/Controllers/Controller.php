@@ -56,7 +56,8 @@ abstract class Controller
             $query->with($with);
         }
         $model = $query->find($id);
-        return $model ?? $this->notFound("data with id {$id} not found.");
+        $modelName = class_basename($this->model);
+        return $model ?? $this->notFound("{$modelName} with id {$id} not found.");
     }
 
     protected function create($except = [], $model = false)
@@ -72,7 +73,8 @@ abstract class Controller
         }
         $model = $check_model::find($id);
         if(!$model) {
-            return $this->notFound("data with id {$id} not found.");
+            $modelName = class_basename($check_model);
+            return $this->notFound("{$modelName} with id {$id} not found.");
         }
         return $model;
     }
