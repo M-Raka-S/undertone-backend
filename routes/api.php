@@ -34,4 +34,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Projects
     autoRouting(ProjectController::class);
     Route::put('/projects/{id}/hidden', [ProjectController::class, 'updateHiddenCategories']);
+    Route::put('/projects/{id}/{user_id}', [ProjectController::class, 'addUser']);
+    Route::put('/projects/{id}/{user_id}', [ProjectController::class, 'editUserRole']);
 });

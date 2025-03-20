@@ -62,21 +62,26 @@ abstract class Controller
         return $model ? $created : $boolean;
     }
 
-    protected function update($id)
-    {
-        $model = $this->model::find($id);
+    protected function checkExists($id, $check_model = null) {
+        if(!$check_model) {
+            $check_model = $this->model;
+        }
+        $model = $check_model::find($id);
         if(!$model) {
             return $this->notFound("data with id {$id} not found.");
         }
+        return $model;
+    }
+
+    protected function update($id)
+    {
+        $model = $this->checkExists($id);
         return $model->update($this->request->all()) ? true : false;
     }
 
     protected function delete($id)
     {
-        $data = $this->model::find($id);
-        if (!$data) {
-            return $this->notFound("data with id {$id} not found.");
-        }
+        $data = $this->checkExists($id);
         $data->delete();
         return $data;
     }

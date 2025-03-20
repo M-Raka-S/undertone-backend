@@ -17,6 +17,15 @@ test('users and projects relationship', function () {
     $this->user->attachProject($this->project->id);
     expect($this->user->projects->first()->id)->toBe($this->project->id)
         ->and($this->project->users->first()->id)->toBe($this->user->id);
+    $roleInfo = $this->project->getRoleInfo($this->user);
+    expect($roleInfo)
+        ->toHaveKey('name', 'editor')
+        ->toHaveKey('description', 'Allows only reading and commenting privileges.');
+    $this->project->updateUserRole($this->user, 'projectmanager');
+    $roleInfo = $this->user->getRoleInfo($this->project);
+    expect($roleInfo)
+        ->toHaveKey('name', 'project manager')
+        ->toHaveKey('description', 'Allows project control without writing privileges.');
 });
 
 test('projects and chapters relationship', function () {
