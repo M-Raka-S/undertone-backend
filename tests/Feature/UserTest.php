@@ -68,6 +68,14 @@ test('success when editing self', function () {
     $response->assertStatus(200);
 });
 
+test('success when editing self with same name', function () {
+    $response = $this->post("/api/users/{$this->users->get(0)->id}", [
+        '_method' => 'patch',
+        'username' => $this->users->get(0)->username,
+    ]);
+    $response->assertStatus(200);
+});
+
 test('fails when deleting user', function () {
     $response = $this->delete("/api/users/{$this->users->first()->id}");
     $response->assertStatus(403);

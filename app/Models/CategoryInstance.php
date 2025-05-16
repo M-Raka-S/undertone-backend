@@ -11,6 +11,12 @@ class CategoryInstance extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'category_id',
+        'project_id',
+        'summarisation',
+    ];
+
     /**
      * Get the category that owns the CategoryInstance
      *
@@ -38,6 +44,16 @@ class CategoryInstance extends Model
      */
     public function parameters(): HasMany
     {
-        return $this->hasMany(InstanceParameter::class, "instance_id");
+        return $this->hasMany(InstanceParameter::class, 'instance_id');
+    }
+
+    /**
+     * Get all of the media for the CategoryInstance
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function media(): HasMany
+    {
+        return $this->hasMany(Media::class, 'instance_id');
     }
 }

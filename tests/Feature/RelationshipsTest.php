@@ -75,3 +75,16 @@ test('category instances relationships', function() {
         ->and($parameter1->instanceParameters->pluck('id'))->toContain($instance1parameter1->id, $instance2parameter1->id)
         ->and($parameter2->instanceParameters->pluck('id'))->toContain($instance1parameter2->id, $instance2parameter2->id);
 });
+
+test('media relationships', function() {
+    $instance = CategoryInstance::factory()->create();
+    $project = Project::factory()->create();
+    [$media1, $media2] = Media::factory()->count(2)->sequence(
+        ['instance_id' => $instance->id],
+        ['project_id' => $project->id]
+    )->create();
+    expect($instance->media->pluck('id'))->toContain($media1->id)
+    ->and($project->media->pluck('id'))->toContain($media2->id)
+    ->and($media1->instance->id)->toBe($instance->id)
+    ->and($media2->project->id)->toBe($project->id);
+});

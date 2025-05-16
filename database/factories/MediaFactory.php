@@ -2,9 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\InstanceParameter;
+use App\Models\CategoryInstance;
 use App\Models\Project;
-use App\Models\ProjectParameter;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,7 +20,7 @@ class MediaFactory extends Factory
     {
         return [
             'path' => $this->faker->imageUrl(),
-            'category_instance_id' => InstanceParameter::factory(),
+            'instance_id' => CategoryInstance::factory(),
             'project_id' => Project::factory(),
         ];
     }

@@ -12,7 +12,7 @@ class Media extends Model
 
     protected $fillable = [
         'path',
-        'project_parameter_id',
+        'instance_id',
         'project_id',
     ];
 
@@ -21,9 +21,9 @@ class Media extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function instanceParameter(): BelongsTo
+    public function instance(): BelongsTo
     {
-        return $this->belongsTo(InstanceParameter::class);
+        return $this->belongsTo(CategoryInstance::class, 'instance_id');
     }
 
     /**
