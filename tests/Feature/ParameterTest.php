@@ -59,13 +59,16 @@ test('copies new parameter to existing instances', function () {
     ]);
     $created_id = $response->getOriginalContent()["id"];
     $instance = CategoryInstance::find($created_id);
-    expect($instance->parameters->count())->toEqual(30);
+    expect($instance->parameters->pluck('parameter_id'))->toEqual($this->category->parameters->pluck('id'));
+    expect($instance->parameters->count() + $this->category->parameters->count())->toEqual(30 + 30);
     $this->post('/api/parameters', [
         'name' => 'Parameter name',
         'category_id' => $this->category->id,
     ]);
     $instance->refresh();
-    expect($instance->parameters->count())->toEqual(31);
+    $this->category->refresh();
+    expect($instance->parameters->pluck('parameter_id'))->toEqual($this->category->parameters->pluck('id'));
+    expect($instance->parameters->count() + $this->category->parameters->count())->toEqual(31 + 31);
 });
 
 test('fails when reading parameters', function () {
