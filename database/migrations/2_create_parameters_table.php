@@ -22,8 +22,7 @@ return new class extends Migration
 
         Schema::create('category_instances', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('summarisation');
+            $table->string('summarisation')->nullable();
             $table->unsignedBigInteger('category_id')->index();
             $table->unsignedBigInteger('project_id')->index();
             $table->timestamps();

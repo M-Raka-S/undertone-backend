@@ -11,6 +11,12 @@ class InstanceParameter extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'value',
+        'parameter_id',
+        'instance_id',
+    ];
+
     /**
      * Get the parameter that owns the InstanceParameter
      *
@@ -28,6 +34,6 @@ class InstanceParameter extends Model
      */
     public function instance(): BelongsTo
     {
-        return $this->belongsTo(CategoryInstance::class, "instance_id");
+        return $this->belongsTo(CategoryInstance::class, 'instance_id');
     }
 }

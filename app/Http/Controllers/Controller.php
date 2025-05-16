@@ -79,10 +79,10 @@ abstract class Controller
         return $model;
     }
 
-    protected function update($id)
+    protected function update($id, $exclude = [])
     {
         $model = $this->checkExists($id);
-        return $model->update($this->request->all()) ? true : false;
+        return $model->update($this->request->except($exclude)) ? true : false;
     }
 
     protected function delete($id)

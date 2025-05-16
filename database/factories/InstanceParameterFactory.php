@@ -19,6 +19,7 @@ class InstanceParameterFactory extends Factory
     public function definition(): array
     {
         return [
+            'value' => fake()->sentence(5),
             'parameter_id' => Parameter::factory(),
             'instance_id' => CategoryInstance::factory(),
         ];

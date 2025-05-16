@@ -19,7 +19,6 @@ class CategoryInstanceFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->word(),
             'category_id' => Category::factory(),
             'project_id' => Project::factory(),
             'summarisation' => fake()->sentence(10),

@@ -82,11 +82,11 @@ class Project extends Model
     }
 
     /**
-     * Get all of the medias for the Project
+     * Get all of the media for the Project
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function medias(): HasMany
+    public function media(): HasMany
     {
         return $this->hasMany(Media::class);
     }
