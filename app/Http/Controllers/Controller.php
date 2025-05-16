@@ -36,11 +36,13 @@ abstract class Controller
         }
     }
 
-    protected function empty(){
+    protected function empty()
+    {
         return $this->model::count() > 0 ? true : false;
     }
 
-    protected function current_user($id) {
+    protected function current_user($id)
+    {
         return auth()->user()->id == $id ? true : false;
     }
 
@@ -67,12 +69,13 @@ abstract class Controller
         return $model ? $created : $boolean;
     }
 
-    protected function checkExists($id, $check_model = null) {
-        if(!$check_model) {
+    protected function checkExists($id, $check_model = null)
+    {
+        if (!$check_model) {
             $check_model = $this->model;
         }
         $model = $check_model::find($id);
-        if(!$model) {
+        if (!$model) {
             $modelName = class_basename($check_model);
             return $this->notFound("{$modelName} with id {$id} not found.");
         }
@@ -99,11 +102,13 @@ abstract class Controller
         ], 200);
     }
 
-    protected function created($message)
+    protected function created($message, $id = null)
     {
-        return response([
-            'message' => $message
-        ], 201);
+        $response = ['message' => $message];
+        if (!is_null($id) && app()->environment('testing')) {
+            $response['id'] = $id;
+        }
+        return response($response, 201);
     }
 
     protected function unauthenticated($message)

@@ -2,28 +2,22 @@
 
 namespace App\Jobs;
 
-use App\Models\CategoryInstance;
 use App\Models\InstanceParameter;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-class CopyParameterToInstances implements ShouldQueue
+class createParametersForInstance implements ShouldQueue
 {
     use Queueable;
 
-    protected $parameter;
+    protected $instance;
 
     /**
      * Create a new job instance.
      */
-    public function __construct($parameter)
+    public function __construct($instance)
     {
-        $this->parameter = $parameter;
-    }
-
-    public function getParameter()
-    {
-        return $this->parameter;
+        $this->instance = $instance;
     }
 
     /**
@@ -31,19 +25,20 @@ class CopyParameterToInstances implements ShouldQueue
      */
     public function handle(): void
     {
-        $instances = CategoryInstance::where('category_id', $this->parameter->category->id)->get();
-        if ($instances->count() > 0) {
+        $parameters = $this->instance->category->parameters;
+        if ($parameters->count() > 0) {
             $insertData = [];
-            foreach ($instances as $instance) {
+            foreach ($parameters as $parameter) {
                 $insertData[] = [
-                    'parameter_id' => $this->parameter->id,
-                    'instance_id' => $instance->id,
+                    'parameter_id' => $parameter->id,
+                    'instance_id' => $this->instance->id,
                     'value' => null,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
             }
             InstanceParameter::insert($insertData);
+            $id = $this->instance->id;
         }
     }
 }
