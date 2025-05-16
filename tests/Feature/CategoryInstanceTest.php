@@ -3,6 +3,7 @@
 use App\Models\Category;
 use App\Models\CategoryInstance;
 use App\Models\InstanceParameter;
+use App\Models\Parameter;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -11,6 +12,9 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->category = Category::factory()->create();
+    $this->parameters = Parameter::factory()->count(5)->create([
+        'category_id' => $this->category->id,
+    ]);
     $this->project = Project::factory()->create();
     $this->actingAs(User::factory()->create());
     $this->instances = CategoryInstance::factory()->count(30)->create([
@@ -60,6 +64,16 @@ test('success when making instance with valid parameters', function () {
         'project_id' => $this->project->id,
     ]);
     $response->assertStatus(201);
+});
+
+test('success copying parameters when instance created', function () {
+    $response = $this->post('/api/instances', [
+        'category_id' => $this->category->id,
+        'project_id' => $this->project->id,
+    ]);
+    $created_id = $response->getOriginalContent()["id"];
+    $instance = CategoryInstance::find($created_id);
+    expect($instance->parameters->pluck('parameter_id'))->toEqual($this->parameters->pluck('id'));
 });
 
 test('fails when reading instances', function () {

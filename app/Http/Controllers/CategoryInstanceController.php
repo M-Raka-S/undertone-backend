@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\createParametersForInstance;
 use App\Models\CategoryInstance;
 use App\Models\InstanceParameter;
 use Illuminate\Http\Request;
 
 class CategoryInstanceController extends Controller
 {
-    public function __construct(Request $request) {
+    public function __construct(Request $request)
+    {
         parent::__construct($request);
         $this->setModel(CategoryInstance::class);
     }
@@ -29,7 +31,11 @@ class CategoryInstanceController extends Controller
             'category_id' => 'required|exists:categories,id',
             'project_id' => 'required|exists:projects,id',
         ], ['category_id', 'project_id']);
-        return $this->create() ? $this->created('instance created.') : $this->invalid('creation failed.');
+        $instance = $this->create([], true);
+        if ($instance) {
+            createParametersForInstance::dispatch($instance);
+        }
+        return $instance ? $this->created('instance created.', $instance->id) : $this->invalid('creation failed.');
     }
 
     public function edit($id)

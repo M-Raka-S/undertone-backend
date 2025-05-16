@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Jobs\CopyParameterToInstances;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\{BelongsToMany, BelongsTo, HasMany};
@@ -15,14 +14,6 @@ class Parameter extends Model
         'name',
         'category_id',
     ];
-
-    protected static function boot()
-    {
-        parent::boot();
-        static::created(function (Parameter $parameter) {
-            CopyParameterToInstances::dispatch($parameter);
-        });
-    }
 
     /**
      * The projects that belong to the Project

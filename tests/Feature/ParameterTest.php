@@ -1,8 +1,10 @@
 <?php
 
 use App\Models\Category;
+use App\Models\CategoryInstance;
 use App\Models\InstanceParameter;
 use App\Models\Parameter;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -47,6 +49,26 @@ test('success when making parameter with valid parameters', function () {
         'category_id' => $this->category->id,
     ]);
     $response->assertStatus(201);
+});
+
+test('copies new parameter to existing instances', function () {
+    $project = Project::factory()->create();
+    $response = $this->post('/api/instances', [
+        'category_id' => $this->category->id,
+        'project_id' => $project->id,
+    ]);
+    $created_id = $response->getOriginalContent()["id"];
+    $instance = CategoryInstance::find($created_id);
+    expect($instance->parameters->pluck('parameter_id'))->toEqual($this->category->parameters->pluck('id'));
+    expect($instance->parameters->count() + $this->category->parameters->count())->toEqual(30 + 30);
+    $this->post('/api/parameters', [
+        'name' => 'Parameter name',
+        'category_id' => $this->category->id,
+    ]);
+    $instance->refresh();
+    $this->category->refresh();
+    expect($instance->parameters->pluck('parameter_id'))->toEqual($this->category->parameters->pluck('id'));
+    expect($instance->parameters->count() + $this->category->parameters->count())->toEqual(31 + 31);
 });
 
 test('fails when reading parameters', function () {
@@ -94,19 +116,19 @@ test('category id does not change even when category_id provided and edit is suc
     $response->assertStatus(200);
 });
 
-test('fails when deleting non-existent parameter', function() {
+test('fails when deleting non-existent parameter', function () {
     $response = $this->delete('/api/parameters/-1');
     $response->assertStatus(404);
 });
 
-test('fails when deleting a valid category with parameters', function() {
+test('fails when deleting a valid category with parameters', function () {
     $parameter_id = $this->parameters->first()->id;
     InstanceParameter::factory()->create(['parameter_id' => $parameter_id]);
     $response = $this->delete("/api/parameters/{$parameter_id}");
     $response->assertStatus(409);
 });
 
-test('success when deleting a valid parameter', function() {
+test('success when deleting a valid parameter', function () {
     $response = $this->delete("/api/parameters/{$this->parameters->first()->id}");
     $response->assertStatus(200);
 });

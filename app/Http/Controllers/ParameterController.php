@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\CopyParameterToInstances;
 use App\Models\InstanceParameter;
 use App\Models\Parameter;
 use Illuminate\Http\Request;
@@ -29,7 +30,11 @@ class ParameterController extends Controller
             'name' => 'required',
             'category_id' => 'required|exists:categories,id',
         ], ['name', 'category_id']);
-        return $this->create() ? $this->created('parameter created.') : $this->invalid('creation failed.');
+        $parameter = $this->create([], true);
+        if($parameter) {
+            CopyParameterToInstances::dispatch($parameter);
+        }
+        return $parameter ? $this->created('parameter created.', $parameter->id) : $this->invalid('creation failed.');
     }
 
     public function edit($id)

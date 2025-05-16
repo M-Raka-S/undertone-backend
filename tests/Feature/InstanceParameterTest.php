@@ -113,11 +113,3 @@ test('success when deleting a valid instance parameter', function() {
     $response = $this->delete("/api/instanceParameters/{$this->parameters->first()->id}");
     $response->assertStatus(200);
 });
-
-test('creates copy when base parameter is created', function() {
-    Queue::fake();
-    $parameter = Parameter::factory()->create();
-    Queue::assertPushed(CopyParameterToInstances::class, function($job) use ($parameter) {
-        return $job->getParameter() == $parameter;
-    });
-});
