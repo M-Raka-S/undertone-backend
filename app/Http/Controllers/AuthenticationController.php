@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Sanctum\TransientToken;
@@ -17,15 +18,17 @@ class AuthenticationController extends Controller
 
     public function register()
     {
-        $this->validator([
+        $rules = [
             'username' => 'required|unique:users',
-            'password' => [
-                'required',
-                'confirmed',
-                Password::min(8)->mixedCase()->numbers()->uncompromised()
-            ],
+            'password' => ['required', 'confirmed'],
             'password_confirmation' => 'required',
-        ], [
+        ];
+
+        if (App::environment('production')) {
+            $rules['password'][] = Password::min(8)->mixedCase()->numbers()->uncompromised();
+        }
+
+        $this->validator($rules, [
             'username',
             'password',
             'password_confirmation'
