@@ -24,7 +24,7 @@ class AuthenticationController extends Controller
             'password_confirmation' => 'required',
         ];
 
-        if (App::environment('production')) {
+        if (App::environment(['production', 'testing'])) {
             $rules['password'][] = Password::min(8)->mixedCase()->numbers()->uncompromised();
         }
 
