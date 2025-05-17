@@ -55,9 +55,11 @@ class AuthenticationController extends Controller
         )) {
             return $this->unauthenticated('invalid credentials.');
         }
+        $user = auth()->user();
         return $this->ok([
             'message' => 'login successful.',
-            'token' => auth()->user()->createToken('undertone.')->plainTextToken,
+            'username' => $user->username,
+            'token' => $user->createToken('undertone.')->plainTextToken,
         ]);
     }
 

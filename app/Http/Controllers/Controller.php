@@ -164,7 +164,7 @@ abstract class Controller
         abort(
             response()->json(
                 [
-                    'message' => 'Validation failed',
+                    'message' => 'validation failed',
                     'errors' => $validator->errors(),
                 ],
                 422,
