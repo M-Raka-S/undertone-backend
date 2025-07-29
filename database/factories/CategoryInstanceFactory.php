@@ -21,7 +21,7 @@ class CategoryInstanceFactory extends Factory
         return [
             'category_id' => Category::factory(),
             'project_id' => Project::factory(),
-            'summarisation' => fake()->sentence(10),
+            'summary' => fake()->sentence(10),
         ];
     }
 }

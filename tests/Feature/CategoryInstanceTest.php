@@ -6,9 +6,6 @@ use App\Models\InstanceParameter;
 use App\Models\Parameter;
 use App\Models\Project;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->category = Category::factory()->create();
@@ -16,7 +13,9 @@ beforeEach(function () {
         'category_id' => $this->category->id,
     ]);
     $this->project = Project::factory()->create();
-    $this->actingAs(User::factory()->create());
+    $this->user = User::factory()->create();
+    $this->project->attachUser($this->user, 'leadauthor');
+    $this->actingAs($this->user);
     $this->instances = CategoryInstance::factory()->count(30)->create([
         'category_id' => $this->category->id,
         'project_id' => $this->project->id,
@@ -94,7 +93,7 @@ test('success when picking valid instance', function () {
 test('success when editing instance with valid parameters', function () {
     $response = $this->post("/api/instances/{$this->instances->first()->id}", [
         '_method' => 'patch',
-        'summarisation' => 'This is a summary',
+        'summary' => 'This is a summary',
     ]);
     $response->assertStatus(200);
 });
@@ -107,7 +106,7 @@ test('category and project id does not change even when both are provided and ed
         ->and($instance->project_id)->toBe($this->project->id);
     $response = $this->post("/api/instances/{$instance->id}", [
         '_method' => 'patch',
-        'summarisation' => 'This is a summary',
+        'summary' => 'This is a summary',
         'category_id' => $newCategory->id,
         'project_id' => $newProject->id,
     ]);
@@ -122,11 +121,11 @@ test('fails when deleting non-existent instance', function() {
     $response->assertStatus(404);
 });
 
-test('fails when deleting a valid instance with parameters', function() {
+test('success when deleting a valid instance with parameters', function() {
     $instance_id = $this->instances->first()->id;
     InstanceParameter::factory()->create(['instance_id' => $instance_id]);
     $response = $this->delete("/api/instances/{$instance_id}");
-    $response->assertStatus(409);
+    $response->assertStatus(200);
 });
 
 test('success when deleting a valid parameter', function() {

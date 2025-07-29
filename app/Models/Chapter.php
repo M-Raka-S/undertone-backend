@@ -2,28 +2,34 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\{HasMany, BelongsTo};
 
 class Chapter extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'order_level',
         'path',
+        'name',
+        'summary',
+        'project_id',
+        'order_level',
+    ];
+
+    protected $hidden = [
         'project_id',
     ];
 
-    /**
-     * Get the project that owns the Chapter
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
     }
 }

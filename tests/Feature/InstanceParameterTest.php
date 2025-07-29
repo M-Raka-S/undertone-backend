@@ -1,19 +1,20 @@
 <?php
 
-use App\Jobs\CopyParameterToInstances;
 use App\Models\CategoryInstance;
 use App\Models\InstanceParameter;
 use App\Models\Parameter;
+use App\Models\Project;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Queue;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    $this->project = Project::factory()->create();
     $this->parameter = Parameter::factory()->create();
-    $this->instance = CategoryInstance::factory()->create();
-    $this->actingAs(User::factory()->create());
+    $this->instance = CategoryInstance::factory()->create([
+        'project_id' => $this->project->id,
+    ]);
+    $this->user = User::factory()->create();
+    $this->project->attachUser($this->user, 'leadauthor');
+    $this->actingAs($this->user);
     $this->parameters = InstanceParameter::factory()->count(30)->create([
         'parameter_id' => $this->parameter->id,
         'instance_id' => $this->instance->id,
@@ -70,12 +71,12 @@ test('fails when reading instance parameters', function () {
 
 test('fails when picking non-existent instance parameter', function () {
     $response = $this->get('/api/instanceParameters/-1');
-    $response->assertStatus(404);
+    $response->assertStatus(403);
 });
 
-test('success when picking valid instance parameter', function () {
+test('fails when picking valid instance parameter', function () {
     $response = $this->get("/api/instanceParameters/{$this->parameters->first()->id}");
-    $response->assertStatus(200);
+    $response->assertStatus(403);
 });
 
 test('success when editing instance parameter with valid parameters', function () {
@@ -94,7 +95,7 @@ test('parameter and instance id does not change even when both are provided and 
         ->and($parameter->instance_id)->toBe($this->instance->id);
     $response = $this->post("/api/instanceParameters/{$parameter->id}", [
         '_method' => 'patch',
-        'summarisation' => 'This is a summary',
+        'summary' => 'This is a summary',
         'paramter_id' => $newParameter->id,
         'instance_id' => $newInstance->id,
     ]);

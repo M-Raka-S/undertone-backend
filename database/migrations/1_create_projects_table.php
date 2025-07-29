@@ -14,8 +14,8 @@ return new class extends Migration
     {
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('summary')->nullable();
+            $table->longText('name');
+            $table->longText('summary')->nullable();
             $table->jsonb('hidden_categories')->nullable();
             $table->timestamps();
         });
@@ -26,8 +26,8 @@ return new class extends Migration
             $table->unsignedBigInteger('project_id')->index();
             $table->unsignedBigInteger('user_id')->index();
             $table->timestamps();
-            $table->foreign('project_id')->references('id')->on('projects');
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

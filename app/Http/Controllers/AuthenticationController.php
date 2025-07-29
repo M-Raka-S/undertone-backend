@@ -11,9 +11,15 @@ use Laravel\Sanctum\TransientToken;
 
 class AuthenticationController extends Controller
 {
-    public function __construct(Request $request) {
+    public function __construct(Request $request)
+    {
         parent::__construct($request);
         $this->setModel(User::class);
+    }
+
+    public function check_token()
+    {
+        return auth()->user();
     }
 
     public function register()
@@ -33,7 +39,7 @@ class AuthenticationController extends Controller
             'password',
             'password_confirmation'
         ]);
-        $this->merge('password', Hash::make($this->request->password));
+        $this->replace('password', Hash::make($this->request->password));
         $this->create();
         return $this->created('registration successful.');
     }
@@ -49,17 +55,44 @@ class AuthenticationController extends Controller
             'password',
             'remember'
         ]);
-        if(!auth()->attempt(
-            $this->request->except('remember'),
-            $this->request->boolean('remember')
-        )) {
+        if (
+            !auth()->attempt(
+                $this->request->except('remember'),
+                $this->request->boolean('remember')
+            )
+        ) {
             return $this->unauthenticated('invalid credentials.');
         }
         $user = auth()->user();
         return $this->ok([
             'message' => 'login successful.',
             'username' => $user->username,
+            'user_id' => $user->id,
             'token' => $user->createToken('undertone.')->plainTextToken,
+            'remember' => $user->getRememberToken(),
+        ]);
+    }
+
+    public function rememberLogin()
+    {
+        $this->validator([
+            'username' => 'required',
+            'token' => 'required',
+        ], [
+            'username',
+            'token',
+        ]);
+        $user = User::where('username', $this->request->username)->first();
+        if ($user->getRememberToken() === $this->request->token) {
+            auth()->login($user);
+        }
+        $user = auth()->user();
+        return $this->ok([
+            'message' => 'login successful.',
+            'username' => $user->username,
+            'user_id' => $user->id,
+            'token' => $user->createToken('undertone.')->plainTextToken,
+            'remember' => $user->getRememberToken(),
         ]);
     }
 

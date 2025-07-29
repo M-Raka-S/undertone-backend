@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('parameters', function (Blueprint $table) {
             $table->id();
             $table->boolean('identifier')->default(false);
-            $table->string('name');
+            $table->longText('name');
             $table->unsignedBigInteger('category_id')->index();
             $table->timestamps();
             $table->foreign('category_id')->references('id')->on('categories');
@@ -22,22 +22,22 @@ return new class extends Migration
 
         Schema::create('category_instances', function (Blueprint $table) {
             $table->id();
-            $table->string('summarisation')->nullable();
+            $table->longText('summary')->nullable();
             $table->unsignedBigInteger('category_id')->index();
             $table->unsignedBigInteger('project_id')->index();
             $table->timestamps();
             $table->foreign('category_id')->references('id')->on('categories');
-            $table->foreign('project_id')->references('id')->on('projects');
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
         });
 
         Schema::create('instance_parameters', function (Blueprint $table) {
             $table->id();
-            $table->string('value')->nullable();
+            $table->longText('value')->nullable();
             $table->unsignedBigInteger('parameter_id')->index();
             $table->unsignedBigInteger('instance_id')->index();
             $table->timestamps();
             $table->foreign('parameter_id')->references('id')->on('parameters');
-            $table->foreign('instance_id')->references('id')->on('category_instances');
+            $table->foreign('instance_id')->references('id')->on('category_instances')->onDelete('cascade');
         });
     }
 
@@ -49,6 +49,5 @@ return new class extends Migration
         Schema::dropIfExists('parameters');
         Schema::dropIfExists('category_instances');
         Schema::dropIfExists('instance_parameters');
-        Schema::dropIfExists('parameter_inputs');
     }
 };

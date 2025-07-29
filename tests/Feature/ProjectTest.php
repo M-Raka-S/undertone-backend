@@ -2,13 +2,11 @@
 
 use App\Models\Project;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->user = User::factory()->create();
     $this->projects = Project::factory()->count(30)->create();
+    $this->projects->first()->attachUser($this->user, 'leadauthor');
     $this->actingAs($this->user);
 });
 
@@ -49,6 +47,7 @@ test('fails when picking non-existent project', function() {
 });
 
 test('success when picking a valid project', function() {
+    $this->projects->first()->attachUser($this->user);
     $response = $this->get("/api/projects/{$this->projects->first()->id}");
     $response->assertStatus(200);
 });
@@ -70,6 +69,7 @@ test('fails when editing project with empty name', function () {
 });
 
 test('success when editing project with name', function () {
+    $this->projects->first()->attachUser($this->user);
     $response = $this->post("/api/projects/{$this->projects->first()->id}", [
         '_method' => 'patch',
         'name' => 'edited',
@@ -78,6 +78,7 @@ test('success when editing project with name', function () {
 });
 
 test('success when editing project with hidden_categories', function () {
+    $this->projects->first()->attachUser($this->user);
     $response = $this->post("/api/projects/{$this->projects->first()->id}", [
         '_method' => 'patch',
         'name' => 'edited',
@@ -129,6 +130,7 @@ test('fails when updating hidden category with empty hidden_categories parameter
 
 test('success when updating hidden category with valid parameters', function() {
     $project = $this->projects->first();
+    $project->attachUser($this->user);
     expect($project->hidden_categories)->toEqual(null);
     $response = $this->put("/api/projects/{$project->id}/hidden", [
         'action' => 'add',
@@ -169,7 +171,8 @@ test('fails when readding user to project', function() {
 });
 
 test('success when adding user to project with valid project and user id', function() {
-    $response = $this->put("/api/projects/addUser/{$this->projects->first()->id}/{$this->user->id}");
+    $newUser = User::factory()->create();
+    $response = $this->put("/api/projects/addUser/{$this->projects->first()->id}/{$newUser->id}");
     $response->assertStatus(201);
 });
 
@@ -190,13 +193,15 @@ test('fails when removing user from project with non-existent project but valid 
 });
 
 test('fails when removing unrelated user from project', function() {
-    $response = $this->put("/api/projects/removeUser/{$this->projects->first()->id}/{$this->user->id}");
+    $newUser = User::factory()->create();
+    $response = $this->put("/api/projects/removeUser/{$this->projects->first()->id}/{$newUser->id}");
     $response->assertStatus(404);
 });
 
 test('success when removing user from project with valid project and user id', function() {
-    $this->projects->first()->attachUser($this->user);
-    $response = $this->put("/api/projects/removeUser/{$this->projects->first()->id}/{$this->user->id}");
+    $newUser = User::factory()->create();
+    $this->projects->first()->attachUser($newUser);
+    $response = $this->put("/api/projects/removeUser/{$this->projects->first()->id}/{$newUser->id}");
     $response->assertStatus(200);
 });
 
@@ -237,15 +242,17 @@ test('fails when editing user role in project with non-existent project but vali
 });
 
 test('fails when editing unrelated user role in project', function() {
-    $response = $this->put("/api/projects/editRole/{$this->projects->first()->id}/{$this->user->id}", [
+    $newUser = User::factory()->create();
+    $response = $this->put("/api/projects/editRole/{$this->projects->first()->id}/{$newUser->id}", [
         'role' => 'projectmanager',
     ]);
     $response->assertStatus(404);
 });
 
 test('success when editing user role in project with valid project and user id', function() {
-    $this->projects->first()->attachUser($this->user);
-    $response = $this->put("/api/projects/editRole/{$this->projects->first()->id}/{$this->user->id}", [
+    $newUser = User::factory()->create();
+    $this->projects->first()->attachUser($newUser);
+    $response = $this->put("/api/projects/editRole/{$this->projects->first()->id}/{$newUser->id}", [
         'role' => 'projectmanager',
     ]);
     $response->assertStatus(200);
@@ -256,7 +263,8 @@ test('fails when deleting non-existent project', function () {
     $response->assertStatus(404);
 });
 
-test('fails when deleting a valid project', function () {
+test('success when deleting a valid project', function () {
+    $this->projects->first()->attachUser($this->user);
     $response = $this->delete("/api/projects/{$this->projects->first()->id}");
     $response->assertStatus(200);
 });

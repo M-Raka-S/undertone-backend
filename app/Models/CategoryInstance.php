@@ -2,58 +2,61 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\{HasMany, BelongsTo};
 
 class CategoryInstance extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'category_id',
+        'summary',
         'project_id',
-        'summarisation',
+        'category_id',
     ];
 
-    /**
-     * Get the category that owns the CategoryInstance
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(Category::class);
-    }
+    protected $hidden = [
+        'project_id',
+        'category_id',
+    ];
 
-    /**
-     * Get the project that owns the CategoryInstance
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
+    protected $appends = ['identifier_value'];
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
-    /**
-     * Get all of the parameters for the CategoryInstance
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function media(): HasMany
+    {
+        return $this->hasMany(Media::class, 'instance_id');
+    }
+
     public function parameters(): HasMany
     {
         return $this->hasMany(InstanceParameter::class, 'instance_id');
     }
 
-    /**
-     * Get all of the media for the CategoryInstance
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function media(): HasMany
+    public function getIdentifierValueAttribute()
     {
-        return $this->hasMany(Media::class, 'instance_id');
+        $parameter = $this->parameters()
+            ->whereHas('parameter', function ($query) {
+                $query->where('identifier', true);
+            })
+            ->with('parameter')
+            ->first();
+
+        if($parameter) {
+            return [
+                'value' => $parameter->value,
+                'parameter_name' => $parameter->parameter->name,
+            ];
+        }
     }
 }

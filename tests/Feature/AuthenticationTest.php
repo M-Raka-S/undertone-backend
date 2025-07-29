@@ -2,9 +2,6 @@
 
 use App\Models\User;
 use Illuminate\Support\Str;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 class TestData {
     public static string $username;

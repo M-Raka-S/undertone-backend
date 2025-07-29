@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class ProjectUser extends Model
 {
     protected $fillable = [
-        'project_id',
+        'role',
         'user_id',
+        'project_id',
     ];
 }

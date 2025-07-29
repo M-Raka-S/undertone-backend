@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CategoryInstance;
 use Illuminate\Http\Request;
 
 abstract class Controller
@@ -19,7 +20,7 @@ abstract class Controller
         $this->model = new $model;
     }
 
-    protected function merge($key, $value)
+    protected function replace($key, $value)
     {
         $this->request->merge([
             $key => $value,
@@ -41,25 +42,51 @@ abstract class Controller
         return $this->model::count() > 0 ? true : false;
     }
 
-    protected function current_user($id)
+    protected function is_current_user($id)
     {
         return auth()->user()->id == $id ? true : false;
     }
 
-    protected function read($page = 1, $population = 15)
+    protected function filterByOwnership($query)
     {
-        return $this->empty() ? $this->model::paginate($population, ['*'], 'page', $page) : $this->notFound('no data yet.');
+        return $query;
+    }
+
+    protected function read($page = 1, $population = 15, $with = [])
+    {
+        if ($this->empty()) {
+            $query = $this->filterByOwnership($this->model::query());
+            if (!empty($with)) {
+                $query = $query->with($with);
+            }
+            return $query->paginate($population, ['*'], 'page', $page);
+        } else {
+            return $this->notFound('no data yet.');
+        }
+    }
+
+    protected function getAll($with = [])
+    {
+        if ($this->empty()) {
+            $query = $this->filterByOwnership($this->model::query());
+            if (!empty($with)) {
+                $query = $query->with($with);
+            }
+            return response()->json(["data" => $query->get()]);
+        } else {
+            return $this->notFound('no data yet.');
+        }
     }
 
     protected function get($id, $with = [])
     {
-        $query = $this->model::query();
+        $query = $this->filterByOwnership($this->model::query());
         if (!empty($with)) {
             $query->with($with);
         }
         $model = $query->find($id);
         $modelName = class_basename($this->model);
-        return $model ?? $this->notFound("{$modelName} with id {$id} not found.");
+        return $model ?? $this->notFound("{$modelName} not found or is not yours.");
     }
 
     protected function create($except = [], $model = false)
@@ -67,6 +94,15 @@ abstract class Controller
         $created = $this->model::create($this->request->except($except));
         $boolean = $created ? true : false;
         return $model ? $created : $boolean;
+    }
+
+    protected function checkPrivilege($project, $allowed)
+    {
+        $roleInfo = auth()->user()->getRoleInfo($project);
+        if (!$roleInfo || !in_array($roleInfo['name'], $allowed)) {
+            return false;
+        }
+        return true;
     }
 
     protected function checkExists($id, $check_model = null)
@@ -77,22 +113,61 @@ abstract class Controller
         $model = $check_model::find($id);
         if (!$model) {
             $modelName = class_basename($check_model);
-            return $this->notFound("{$modelName} with id {$id} not found.");
+            return $this->notFound("{$modelName} not found.");
+        }
+        return $model;
+    }
+
+    protected function checkOwned($id)
+    {
+        $model = $this->filterByOwnership($this->model::query())
+            ->where('id', $id)
+            ->first();
+        if (!$model) {
+            $modelName = class_basename($this->model);
+            $this->notFound("{$modelName} not found or is not yours.");
         }
         return $model;
     }
 
     protected function update($id, $exclude = [])
     {
-        $model = $this->checkExists($id);
+        $model = $this->checkOwned($id);
         return $model->update($this->request->except($exclude)) ? true : false;
     }
 
     protected function delete($id)
     {
-        $data = $this->checkExists($id);
+        $data = $this->checkOwned($id);
         $data->delete();
         return $data;
+    }
+
+    protected function extractMentionSummaries(string $html): array
+    {
+        $summaries = [];
+
+        $dom = new \DOMDocument();
+
+        // Suppress warnings due to malformed HTML
+        libxml_use_internal_errors(true);
+        $dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+        libxml_clear_errors();
+
+        $spans = $dom->getElementsByTagName('span');
+
+        foreach ($spans as $span) {
+            if ($span->hasAttribute('data-type') && $span->getAttribute('data-type') === 'mention') {
+                $mentionedId = $span->getAttribute('data-id');
+                if ($mentionedId) {
+                    $instance = $this->checkExists($mentionedId, CategoryInstance::class);
+                    $mentionSummary = $instance->getIdentifierValueAttribute()["value"] . ": " . (strip_tags($instance->summary) ?? 'N/A');
+                    $summaries[] = $mentionSummary;
+                }
+            }
+        }
+
+        return $summaries;
     }
 
     protected function ok($message)
@@ -159,13 +234,19 @@ abstract class Controller
         );
     }
 
-    protected function invalid($validator)
+    protected function invalid($message)
     {
+        if (is_string($message)) {
+            $errors = $message;
+        } else {
+            $errors = $message->errors();
+        }
+
         abort(
             response()->json(
                 [
-                    'message' => 'validation failed',
-                    'errors' => $validator->errors(),
+                    'message' => 'validation failed.',
+                    'errors' => $errors,
                 ],
                 422,
             ),

@@ -3,8 +3,8 @@
 namespace App\Jobs;
 
 use App\Models\InstanceParameter;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 class createParametersForInstance implements ShouldQueue
 {
@@ -12,17 +12,11 @@ class createParametersForInstance implements ShouldQueue
 
     protected $instance;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct($instance)
     {
         $this->instance = $instance;
     }
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
         $parameters = $this->instance->category->parameters;
@@ -38,7 +32,6 @@ class createParametersForInstance implements ShouldQueue
                 ];
             }
             InstanceParameter::insert($insertData);
-            $id = $this->instance->id;
         }
     }
 }

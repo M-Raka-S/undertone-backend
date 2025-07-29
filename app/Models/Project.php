@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\{BelongsToMany, HasMany};
 use App\Roles;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\{HasMany, BelongsToMany};
 
 
 class Project extends Model
@@ -14,6 +14,7 @@ class Project extends Model
 
     protected $fillable = [
         'name',
+        'summary',
         'hidden_categories',
     ];
 
@@ -21,24 +22,34 @@ class Project extends Model
         'hidden_categories' => 'array',
     ];
 
-    /**
-     * The users that belong to the Project
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'project_users', 'project_id', 'user_id')->withPivot('role');
     }
 
-    public function attachUser($user, $role = 'editor')
+    public function media(): HasMany
     {
-        $this->users()->attach($user, ['role' => $role]);
+        return $this->hasMany(Media::class);
+    }
+
+    public function chapters(): HasMany
+    {
+        return $this->hasMany(Chapter::class);
+    }
+
+    public function categoryInstances(): HasMany
+    {
+        return $this->hasMany(CategoryInstance::class);
     }
 
     public function detachUser($user)
     {
         $this->users()->detach($user);
+    }
+
+    public function attachUser($user, $role = 'editor')
+    {
+        $this->users()->attach($user, ['role' => $role]);
     }
 
     public function updateUserRole($user, $role)
@@ -54,50 +65,5 @@ class Project extends Model
         }
         $roleEnum = Roles::from($roleValue);
         return $roleEnum->info();
-    }
-
-    /**
-     * The parameters that belong to the Project
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function parameters(): BelongsToMany
-    {
-        return $this->belongsToMany(Parameter::class, 'project_parameters', 'project_id', 'parameter_id')->withPivot(['id']);
-    }
-
-    public function attachParameter($parameter)
-    {
-        $this->parameters()->attach($parameter);
-    }
-
-    /**
-     * Get all of the chapters for the Project
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function chapters(): HasMany
-    {
-        return $this->hasMany(Chapter::class);
-    }
-
-    /**
-     * Get all of the media for the Project
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function media(): HasMany
-    {
-        return $this->hasMany(Media::class);
-    }
-
-    /**
-     * Get all of the categoryInstances for the Project
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function categoryInstances(): HasMany
-    {
-        return $this->hasMany(CategoryInstance::class);
     }
 }

@@ -19,7 +19,7 @@ class InstanceParameterController extends Controller
 
     public function pick($id)
     {
-        return $this->get($id);
+        return $this->unauthorized('access parameter from an instance instead.');
     }
 
     public function make()
@@ -34,6 +34,10 @@ class InstanceParameterController extends Controller
 
     public function edit($id)
     {
+        $parameter = $this->checkExists($id);
+        if (!$this->checkPrivilege($parameter->instance->project, ['lead author', 'author'])) {
+            return $this->unauthorized('you do not have permission to edit parameters');
+        }
         $this->validator([
             'value' => 'nullable',
         ]);

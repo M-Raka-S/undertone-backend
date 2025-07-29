@@ -18,6 +18,11 @@ class CategoryController extends Controller
         return $this->read($page);
     }
 
+    public function all()
+    {
+        return $this->getAll();
+    }
+
     public function pick($id)
     {
         return $this->get($id, ['parameters']);

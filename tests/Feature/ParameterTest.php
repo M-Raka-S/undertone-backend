@@ -6,13 +6,11 @@ use App\Models\InstanceParameter;
 use App\Models\Parameter;
 use App\Models\Project;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->category = Category::factory()->create();
-    $this->actingAs(User::factory()->create());
+    $this->user = User::factory()->create();
+    $this->actingAs($this->user);
     $this->parameters = Parameter::factory()->count(30)->create(['category_id' => $this->category->id]);
 });
 
@@ -53,6 +51,7 @@ test('success when making parameter with valid parameters', function () {
 
 test('copies new parameter to existing instances', function () {
     $project = Project::factory()->create();
+    $project->attachUser($this->user, 'leadauthor');
     $response = $this->post('/api/instances', [
         'category_id' => $this->category->id,
         'project_id' => $project->id,

@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('chapters', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('path');
-            $table->string('summarisation')->nullable();
+            $table->longText('name');
+            $table->longText('path');
+            $table->longText('summary')->nullable();
             $table->integer('order_level');
             $table->unsignedBigInteger('project_id')->index();
             $table->timestamps();
-            $table->foreign('project_id')->references('id')->on('projects');
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
         });
     }
 

@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Category extends Model
 {
@@ -14,21 +14,11 @@ class Category extends Model
         'name',
     ];
 
-    /**
-     * Get all of the parameters for the Category
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
     public function parameters(): HasMany
     {
         return $this->hasMany(Parameter::class);
     }
 
-    /**
-     * Get all of the instances for the Category
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
     public function instances(): HasMany
     {
         return $this->hasMany(CategoryInstance::class);

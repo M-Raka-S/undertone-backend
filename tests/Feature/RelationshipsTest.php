@@ -3,9 +3,6 @@
 use App\Models\{User, Project, Chapter, Category, Parameter, ProjectParameter, ParameterInput, Media};
 use App\Models\CategoryInstance;
 use App\Models\InstanceParameter;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->user = User::factory()->create();

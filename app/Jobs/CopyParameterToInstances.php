@@ -4,8 +4,8 @@ namespace App\Jobs;
 
 use App\Models\CategoryInstance;
 use App\Models\InstanceParameter;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 class CopyParameterToInstances implements ShouldQueue
 {
@@ -13,22 +13,11 @@ class CopyParameterToInstances implements ShouldQueue
 
     protected $parameter;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct($parameter)
     {
         $this->parameter = $parameter;
     }
 
-    public function getParameter()
-    {
-        return $this->parameter;
-    }
-
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
         $instances = CategoryInstance::where('category_id', $this->parameter->category->id)->get();
