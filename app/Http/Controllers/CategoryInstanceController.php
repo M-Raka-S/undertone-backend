@@ -80,7 +80,8 @@ class CategoryInstanceController extends Controller
     {
         $this->validator([
             'term' => 'nullable',
-        ], ['term']);
+            'project_id' => 'required|exists:projects,id',
+        ], ['term', 'project_id']);
 
         $term = $this->request->term;
 
@@ -88,7 +89,7 @@ class CategoryInstanceController extends Controller
             $query->whereHas('parameter', function ($q) {
                 $q->where('identifier', true);
             });
-            $query->where('value', 'like', "%{$term}%");
+            $query->where('value', 'like', "%{$term}%")->where('project_id', $this->request->project_id );
         })->get();
 
         $result = $matchingInstances->map(function ($instance) {
